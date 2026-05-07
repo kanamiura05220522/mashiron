@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ましろの星占い</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Zen+Maru+Gothic:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--night:#0e0c1a;--star-gold:#f0d070;--text:#e8e0f0;--text-mid:#a898c0;--border:rgba(200,180,255,0.12)}
+html,body{min-height:100%;background:var(--night);color:var(--text);font-family:'Zen Maru Gothic',sans-serif}
+body{display:flex;flex-direction:column;align-items:center;padding:40px 20px 60px;position:relative;overflow-x:hidden}
+.starfield{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.star-dot{position:absolute;border-radius:50%;background:white;animation:twinkle linear infinite}
+@keyframes twinkle{0%,100%{opacity:0.2;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(100,60,180,0.18) 0%,transparent 50%),radial-gradient(ellipse at 80% 70%,rgba(60,100,180,0.12) 0%,transparent 50%);pointer-events:none}
+.wrapper{width:100%;max-width:560px;position:relative;z-index:1}
+.header{text-align:center;margin-bottom:40px;animation:rise 0.9s cubic-bezier(0.22,1,0.36,1) both}
+.date-label{font-family:'Noto Serif JP',serif;font-size:12px;letter-spacing:0.25em;color:var(--text-mid);margin-bottom:24px}
+.avatar-container{position:relative;display:inline-block;margin-bottom:20px}
+.moon{position:absolute;top:-8px;right:-14px;font-size:22px;opacity:0.8;animation:moon-glow 4s ease-in-out infinite}
+@keyframes moon-glow{0%,100%{transform:rotate(-10deg) scale(1);opacity:0.7}50%{transform:rotate(10deg) scale(1.1);opacity:1}}
+.avatar-glow{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(160,120,255,0.25) 0%,transparent 70%);animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.1);opacity:1}}
+.avatar-ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(200,160,255,0.3);animation:spin-slow 20s linear infinite}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.avatar{width:110px;height:110px;border-radius:50%;object-fit:cover;position:relative;z-index:1;border:2px solid rgba(200,160,255,0.3);animation:float 5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.name{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:600;letter-spacing:0.15em;background:linear-gradient(135deg,#f0d070,#e8c0f8,#a0c8f8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.tagline{font-size:12px;letter-spacing:0.2em;color:var(--text-mid)}
+.seiza-section{margin-bottom:32px;animation:rise 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both}
+.section-title{text-align:center;font-size:11px;letter-spacing:0.25em;color:var(--text-mid);margin-bottom:16px}
+.seiza-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.seiza-btn{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:10px 6px 8px;cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.seiza-btn:hover{background:rgba(160,120,255,0.1);border-color:rgba(200,160,255,0.35);transform:translateY(-2px)}
+.seiza-btn.active{background:rgba(160,120,255,0.2);border-color:rgba(200,160,255,0.6);box-shadow:0 0 12px rgba(160,120,255,0.2)}
+.seiza-sym{font-size:20px;line-height:1}
+.seiza-name{font-size:11px;color:var(--text-mid);letter-spacing:0.04em}
+.seiza-btn.active .seiza-name{color:rgba(220,200,255,0.9)}
+.seiza-date{font-size:9px;color:rgba(150,140,180,0.7)}
+.card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;padding:36px 32px;min-height:260px;position:relative;animation:rise 0.9s cubic-bezier(0.22,1,0.36,1) 0.2s both;backdrop-filter:blur(4px)}
+.card::before{content:'✦';position:absolute;top:12px;left:16px;font-size:10px;color:rgba(240,208,112,0.3)}
+.card::after{content:'✦';position:absolute;bottom:12px;right:16px;font-size:10px;color:rgba(240,208,112,0.3)}
+.initial-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:188px;gap:20px}
+.hint-text{font-size:13px;color:var(--text-mid);letter-spacing:0.1em}
+.start-btn{background:linear-gradient(135deg,rgba(140,100,240,0.3),rgba(100,140,240,0.3));border:1px solid rgba(200,160,255,0.4);border-radius:100px;padding:13px 40px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;letter-spacing:0.2em;color:var(--text);cursor:pointer;transition:all 0.3s}
+.start-btn:hover{background:linear-gradient(135deg,rgba(140,100,240,0.5),rgba(100,140,240,0.5));border-color:rgba(200,160,255,0.7);box-shadow:0 0 20px rgba(160,120,255,0.25);transform:translateY(-2px)}
+.start-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.result-state{display:none;flex-direction:column;gap:20px}
+.result-header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.result-seiza{display:flex;align-items:center;gap:10px}
+.result-sym{font-size:28px}
+.result-name{font-family:'Noto Serif JP',serif;font-size:20px;font-weight:600;letter-spacing:0.1em;background:linear-gradient(135deg,#f0d070,#c8b0f8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.result-rank{font-size:11px;letter-spacing:0.12em;color:var(--text-mid);margin-top:2px}
+.stars-row{display:flex;gap:3px}
+.star{font-size:13px;color:var(--star-gold)}
+.star.empty{color:rgba(200,200,255,0.15)}
+.fortune-body{font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;line-height:2.2;color:rgba(232,224,248,0.9);letter-spacing:0.04em;white-space:pre-line;animation:fadeWords 0.8s ease both}
+@keyframes fadeWords{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.lucky-box{background:rgba(240,208,112,0.06);border:1px solid rgba(240,208,112,0.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.lucky-label{font-size:10px;letter-spacing:0.2em;color:var(--star-gold);white-space:nowrap}
+.lucky-value{font-size:14px;color:rgba(240,208,112,0.9);letter-spacing:0.05em}
+.result-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border)}
+.sig{font-size:12px;color:var(--text-mid);letter-spacing:0.1em}
+.retry-btn{background:none;border:1px solid var(--border);border-radius:100px;padding:6px 18px;font-family:'Zen Maru Gothic',sans-serif;font-size:12px;color:var(--text-mid);cursor:pointer;letter-spacing:0.08em;transition:all 0.2s}
+.retry-btn:hover{border-color:rgba(200,160,255,0.4);color:var(--text)}
+.footer{margin-top:28px;text-align:center;font-size:11px;letter-spacing:0.2em;color:rgba(168,152,192,0.5);animation:rise 0.9s cubic-bezier(0.22,1,0.36,1) 0.3s both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.shooting-star{position:fixed;width:2px;height:2px;background:white;border-radius:50%;pointer-events:none;animation:shoot linear forwards}
+@keyframes shoot{from{opacity:1;transform:translate(0,0)}to{opacity:0;transform:translate(200px,200px)}}
+</style>
+</head>
+<body>
+<div class="starfield" id="starfield"></div>
+<div class="wrapper">
+  <div class="header">
+    <div class="date-label" id="dateLabel"></div>
+    <div class="avatar-container">
+      <div class="avatar-glow"></div>
+      <div class="avatar-ring"></div>
+      <img class="avatar" src="data:image/png;base64,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" alt="ましろ" />
+      <div class="moon">🌙</div>
+    </div>
+    <div class="name">ましろの星占い</div>
+    <div class="tagline">白チンチラの占い師</div>
+  </div>
+  <div class="seiza-section">
+    <div class="section-title">— あなたの星座を選んでください —</div>
+    <div class="seiza-grid" id="seizaGrid"></div>
+  </div>
+  <div class="card">
+    <div class="initial-state" id="initialState">
+      <div class="hint-text" id="hintText">星座を選んで占ってもらおう</div>
+      <button class="start-btn" id="startBtn" disabled>占いを見る</button>
+    </div>
+    <div class="result-state" id="resultState">
+      <div class="result-header">
+        <div class="result-seiza">
+          <div class="result-sym" id="resultSym"></div>
+          <div>
+            <div class="result-name" id="resultName"></div>
+            <div class="result-rank" id="resultRank"></div>
+          </div>
+        </div>
+        <div class="stars-row" id="resultStars"></div>
+      </div>
+      <div class="fortune-body" id="fortuneBody"></div>
+      <div class="lucky-box">
+        <div class="lucky-label">LUCKY</div>
+        <div class="lucky-value" id="luckyValue"></div>
+      </div>
+      <div class="result-footer">
+        <div class="sig">🐭 ましろより</div>
+        <button class="retry-btn" id="retryBtn">もう一度占う</button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">✦ ましろの星占い · 毎日運勢が変わります ✦</div>
+</div>
+<script>
+const SEIZA=[{sym:"♈",name:"牡羊座",date:"3/21〜4/19"},{sym:"♉",name:"牡牛座",date:"4/20〜5/20"},{sym:"♊",name:"双子座",date:"5/21〜6/21"},{sym:"♋",name:"蟹座",date:"6/22〜7/22"},{sym:"♌",name:"獅子座",date:"7/23〜8/22"},{sym:"♍",name:"乙女座",date:"8/23〜9/22"},{sym:"♎",name:"天秤座",date:"9/23〜10/23"},{sym:"♏",name:"蠍座",date:"10/24〜11/22"},{sym:"♐",name:"射手座",date:"11/23〜12/21"},{sym:"♑",name:"山羊座",date:"12/22〜1/19"},{sym:"♒",name:"水瓶座",date:"1/20〜2/18"},{sym:"♓",name:"魚座",date:"2/19〜3/20"}];
+const FORTUNES={
+"牡羊座":[
+{text:"今日は勢いが味方してくれる日です。
+迷っていたことに思い切って踏み出してみて。
+周囲も自然とあなたのペースに引き込まれるでしょう。",lucky:"赤いアイテム"},
+{text:"積極的な行動が吉を呼びます。
+朝のうちに大事な連絡を済ませておくと良さそう。
+エネルギーが満ちているので新しいことを始めるのに最適です。",lucky:"コーヒー"},
+{text:"今日は直感を信じてみてください。
+少し無謀に思えることでも案外うまくいくかも。
+夕方以降は気持ちが落ち着いてきます。",lucky:"スニーカー"},
+{text:"リーダーシップを発揮できる日です。
+自分の意見をしっかり伝えることで道が開けます。
+体を動かすと運気がさらにアップします。",lucky:"オレンジ色のもの"},
+{text:"周りの人からの評価が高まっている日です。
+素直に感謝の気持ちを伝えると縁が深まります。
+午後は創造力が冴えてくるでしょう。",lucky:"白いタオル"}
+],
+"牡牛座":[
+{text:"安定した一日が過ごせそうです。
+じっくり取り組む作業に力が発揮できます。
+好きな食べ物でリフレッシュするのも良いでしょう。",lucky:"緑色のもの"},
+{text:"今日は自分のペースを大切にしてください。
+焦らずゆっくり進めることで結果が出ます。
+美しいものを見るとインスピレーションが湧きます。",lucky:"観葉植物"},
+{text:"丁寧さが運を引き寄せる日です。
+細かいところまで気を配ると周囲から信頼されます。
+夜は好きな音楽でくつろいでみて。",lucky:"ハーブティー"},
+{text:"物事をじっくり考える力が冴える日です。
+衝動買いは控えめに。
+お気に入りの場所でゆっくりする時間が幸運を呼びます。",lucky:"チョコレート"},
+{text:"堅実な判断が良い結果をもたらします。
+今日は新しいことより続けてきたことに集中を。
+夕食を丁寧に作ると気持ちが整います。",lucky:"木製のもの"}
+],
+"双子座":[
+{text:"コミュニケーション運が高まっています。
+積極的に話しかけると新しい出会いがありそう。
+好奇心のおもむくままに行動してみてください。",lucky:"黄色いもの"},
+{text:"アイデアが次々と浮かぶ日です。
+メモをとっておくと後で役に立ちます。
+多方面に意識を向けると収穫がありそう。",lucky:"ノート"},
+{text:"今日は言葉に力があります。
+素直な気持ちを伝えると人間関係がうまくいきます。
+夕方の移動中にひらめきがやってくるかも。",lucky:"水色のもの"},
+{text:"情報収集に向いている日です。
+読書や調べごとで新しい発見がありそう。
+軽やかな気持ちでいることが開運の鍵です。",lucky:"雑誌"},
+{text:"マルチタスクが得意な今日のあなた。
+複数のことを同時に進めると効率よく片付きます。
+夜は誰かと楽しく話す時間を作って。",lucky:"ストライプ柄"}
+],
+"蟹座":[
+{text:"家族や大切な人との絆が深まる日です。
+思いやりのある言葉が相手の心に届きます。
+家の中を少し整えると気持ちが明るくなりそう。",lucky:"白いもの"},
+{text:"感受性が豊かになっている今日。
+直感を大切にすると良い選択ができます。
+好きな料理を作ると心が満たされます。",lucky:"丸いもの"},
+{text:"懐かしい縁が戻ってくる暗示があります。
+昔の友人に連絡してみるのも良さそう。
+ゆったりとした時間が運気を整えます。",lucky:"貝殻モチーフ"},
+{text:"内側の気持ちを大切にしてください。
+無理をせず自分のペースで進むことが大事です。
+夜に日記をつけると心が落ち着くでしょう。",lucky:"ラベンダー色"},
+{text:"人の気持ちに寄り添える一日です。
+誰かのサポートをすることで自分も豊かになります。
+月明かりの下を散歩すると運気が上がります。",lucky:"月モチーフ"}
+],
+"獅子座":[
+{text:"存在感が輝く日です。
+自信を持って行動するとすべてがうまく回ります。
+おしゃれを楽しむことで気分がさらに上がります。",lucky:"ゴールドのもの"},
+{text:"クリエイティブなエネルギーが満ちています。
+自分らしさを表現する場面で力を発揮できます。
+誰かを笑顔にすると幸運が返ってきます。",lucky:"サングラス"},
+{text:"周囲から注目される日です。
+思い切って自分の意見を発信してみて。
+大胆な行動が吉と出るでしょう。",lucky:"赤いリップ"},
+{text:"リーダーシップが際立つ一日。
+みんなをまとめる役割を担うと良い評価につながります。
+夜は自分へのご褒美を忘れずに。",lucky:"太陽モチーフ"},
+{text:"今日は人を楽しませることに集中してみて。
+あなたの笑顔が場を明るくします。
+夕方に素敵な出来事が待っているかも。",lucky:"オレンジ"}
+],
+"乙女座":[
+{text:"細やかな気配りが評価される日です。
+丁寧な仕事ぶりが信頼を高めます。
+少しだけ完璧主義を緩めると気持ちが楽になります。",lucky:"藍色のもの"},
+{text:"分析力が冴えています。
+複雑な問題もしっかり整理すれば解決の糸口が見えます。
+健康管理に気を配ると良い日です。",lucky:"手帳"},
+{text:"計画を立てることに向いている日です。
+今後の目標を書き出してみると気持ちが整います。
+ハーブや植物が運気を高めます。",lucky:"バジル"},
+{text:"誠実さが人の心を動かします。
+少し緊張する場面でも落ち着いて対応できます。
+夜は読書でゆっくり過ごして。",lucky:"文庫本"},
+{text:"今日は整理整頓が吉。
+机や部屋を片付けると頭の中もすっきりします。
+夕方以降に良い知らせが届くかも。",lucky:"白い花"}
+],
+"天秤座":[
+{text:"バランス感覚が光る日です。
+対立する意見をうまく調整できます。
+おしゃれなカフェでひと休みすると運気アップ。",lucky:"ピンクのもの"},
+{text:"人間関係がスムーズに進みます。
+争いを避けて穏やかに接することで縁が深まります。
+午後はアートや音楽に触れると良いでしょう。",lucky:"ローズクォーツ"},
+{text:"美意識が高まっている日です。
+好きなものに囲まれて過ごすと幸運を引き寄せます。
+誰かへのプレゼントを考えるのも良さそう。",lucky:"香水"},
+{text:"公平な視点が物事をうまく運びます。
+迷ったときは「みんなにとって良いか」を基準に。
+夕方は大切な人との時間を大切に。",lucky:"天秤モチーフ"},
+{text:"協調性が運気を高めます。
+チームで動くときに力が発揮できます。
+新しいスイーツに挑戦すると気分が上がります。",lucky:"マカロン"}
+],
+"蠍座":[
+{text:"洞察力が鋭くなっている日です。
+物事の本質を見抜く力が冴えています。
+直感に従った判断が正解につながります。",lucky:"黒いもの"},
+{text:"深い集中力が発揮できる日です。
+一つのことに没頭するほど良い成果が出ます。
+秘密の時間を大切にすると運気が整います。",lucky:"ガーネット"},
+{text:"感情の力が強まっています。
+今日の気持ちを大切にして行動してみて。
+水辺の近くに行くと心が落ち着きます。",lucky:"深紅のもの"},
+{text:"信頼できる人との絆が深まる日です。
+本音を話せる相手を大切にしてください。
+夜は自分だけの時間でリフレッシュを。",lucky:"ダークチョコ"},
+{text:"変化を受け入れることで道が開けます。
+今まで避けていたことに向き合うチャンスです。
+夕方に大切な気づきがありそう。",lucky:"蛇モチーフ"}
+],
+"射手座":[
+{text:"冒険心が運を引き寄せます。
+新しい場所や体験に積極的に飛び込んでみて。
+遠くにいる人からの連絡がありそうです。",lucky:"青いもの"},
+{text:"自由な発想が光る日です。
+枠にとらわれずに考えると良いアイデアが浮かびます。
+外に出て体を動かすと運気上昇。",lucky:"スポーツシューズ"},
+{text:"知識を広げることに向いています。
+本や動画で新しいことを学ぶと運気が高まります。
+笑いの多い一日になりそう。",lucky:"地図柄"},
+{text:"楽観的な気持ちが幸運を呼びます。
+少々のことは気にせず前向きに進みましょう。
+夕方に素敵な出会いがあるかも。",lucky:"矢のモチーフ"},
+{text:"遠くへの旅や新しい挑戦が吉です。
+計画を立てるだけでもテンションが上がります。
+外国のものや料理に触れると運気が上がります。",lucky:"エスニック柄"}
+],
+"山羊座":[
+{text:"努力が実を結ぶ兆しがあります。
+コツコツ続けてきたことが評価されそうです。
+目標を再確認することでモチベーションが上がります。",lucky:"茶色のもの"},
+{text:"責任感が信頼を生む日です。
+任された仕事に誠実に向き合うと良い結果が出ます。
+夜は早めに休むと翌日の運気がアップします。",lucky:"革製品"},
+{text:"地道な積み重ねが報われそうです。
+焦らず一歩ずつ進むことが大切です。
+山や自然に触れると英気が養われます。",lucky:"石のアクセサリー"},
+{text:"計画性が運を呼ぶ日です。
+今日やるべきことをリストアップしてから動きましょう。
+夕方は気持ちが充実してきます。",lucky:"手帳"},
+{text:"粘り強さが発揮できる日です。
+困難に思えることでも諦めなければ突破できます。
+深夜に重要なヒントが浮かぶかも。",lucky:"黒いコーヒー"}
+],
+"水瓶座":[
+{text:"独創的なアイデアが輝く日です。
+他の人と違う視点を大切にしてください。
+新しいテクノロジーや情報が運気を高めます。",lucky:"銀色のもの"},
+{text:"誰かのために動くことで自分の運も上がります。
+SNSで気持ちを発信するのも良さそう。
+仲間とのつながりが力をくれます。",lucky:"青紫のもの"},
+{text:"型にはまらない方法で物事を進めると上手くいきます。
+仲間と情報交換すると良いアイデアが生まれます。
+夜は星を眺めてみて。",lucky:"電球モチーフ"},
+{text:"未来志向で動くと吉です。
+長期的な計画を練るのに向いている日です。
+宇宙や科学に関するものに触れると運気アップ。",lucky:"星柄のもの"},
+{text:"個性を活かすことで道が開けます。
+「みんなと同じ」より「自分らしさ」を優先してみて。
+夜空を眺めるとインスピレーションが湧きます。",lucky:"望遠鏡"}
+],
+"魚座":[
+{text:"感受性が豊かになっている日です。
+芸術や音楽に触れると心が満たされます。
+夢の中にヒントが隠れているかもしれません。",lucky:"水色のもの"},
+{text:"優しさが人の心を癒す日です。
+誰かのために祈ったり手を差し伸べると幸運が巡ります。
+海や川の近くに行くと運気が整います。",lucky:"貝殻"},
+{text:"想像力が高まっています。
+創作活動に取り組むと素晴らしい作品が生まれそう。
+静かな場所でひとりの時間を持つと良いでしょう。",lucky:"パープルのもの"},
+{text:"人の気持ちを読む力が冴えています。
+相手の言葉の裏にある感情を大切に受け止めてあげて。
+夜はアロマの香りで心を整えましょう。",lucky:"アロマキャンドル"},
+{text:"直感と夢見る力が開運のカギです。
+論理より感覚を信じると良い日です。
+水を飲んだり入浴すると運気が流れ込んできます。",lucky:"パールのアクセサリー"}
+]
+};
+
+const RANKS=["第1位✨","第2位","第3位","第4位","第5位","第6位","第7位","第8位","第9位","第10位","第11位","第12位"];
+let selectedSeiza=null;
+const d=new Date();
+const wdays=["日","月","火","水","木","金","土"];
+document.getElementById("dateLabel").textContent=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+wdays[d.getDay()]+"）";
+
+function seededRandom(seed){const x=Math.sin(seed)*10000;return x-Math.floor(x)}
+function dateSeed(extra){return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()+extra}
+
+const grid=document.getElementById("seizaGrid");
+SEIZA.forEach((s,i)=>{
+  const btn=document.createElement("button");
+  btn.className="seiza-btn";
+  btn.innerHTML=`<div class="seiza-sym">${s.sym}</div><div class="seiza-name">${s.name}</div><div class="seiza-date">${s.date}</div>`;
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".seiza-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedSeiza={...s,idx:i};
+    document.getElementById("startBtn").disabled=false;
+    document.getElementById("hintText").textContent=s.sym+" "+s.name+"の運勢を占います";
+    document.getElementById("resultState").style.display="none";
+    document.getElementById("initialState").style.display="flex";
+  });
+  grid.appendChild(btn);
+});
+
+document.getElementById("startBtn").addEventListener("click",showFortune);
+document.getElementById("retryBtn").addEventListener("click",showFortune);
+
+function renderStars(n){return Array.from({length:5},(_,i)=>`<span class="star ${i<n?"":"empty"}">★</span>`).join("")}
+
+function showFortune(){
+  if(!selectedSeiza)return;
+  const list=FORTUNES[selectedSeiza.name];
+  const seed=dateSeed(selectedSeiza.idx*77);
+  const fi=Math.floor(seededRandom(seed)*list.length);
+  const ri=Math.floor(seededRandom(seed+1)*12);
+  const stars=Math.floor(seededRandom(seed+2)*3)+3;
+  const f=list[fi];
+  document.getElementById("resultSym").textContent=selectedSeiza.sym;
+  document.getElementById("resultName").textContent=selectedSeiza.name;
+  document.getElementById("resultRank").textContent="今日のランキング "+RANKS[ri];
+  document.getElementById("resultStars").innerHTML=renderStars(stars);
+  document.getElementById("fortuneBody").textContent=f.text;
+  document.getElementById("luckyValue").textContent=f.lucky;
+  document.getElementById("initialState").style.display="none";
+  document.getElementById("resultState").style.display="flex";
+  for(let i=0;i<5;i++)setTimeout(shootingStar,i*200);
+}
+
+function shootingStar(){
+  const s=document.createElement("div");
+  s.className="shooting-star";
+  s.style.top=Math.random()*50+"%";
+  s.style.left=Math.random()*80+"%";
+  s.style.animationDuration=(0.6+Math.random()*0.4)+"s";
+  document.body.appendChild(s);
+  setTimeout(()=>s.remove(),1200);
+}
+
+(function createStarfield(){
+  const sf=document.getElementById("starfield");
+  for(let i=0;i<80;i++){
+    const dot=document.createElement("div");
+    dot.className="star-dot";
+    const size=Math.random()*2+0.5;
+    dot.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;`;
+    sf.appendChild(dot);
+  }
+})();
+</script>
+</body>
+</html>
